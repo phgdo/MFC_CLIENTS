@@ -241,10 +241,12 @@ void CChattingDlg::OnBnClickedButtonSend()
 		newMsgStruct.targetName = targetName;
 		msgLogs.push_back(newMsgStruct);
 	}
-	
+
 	CString message;
 	message.Format(_T("SENDMSG %s %s %s"), targetName, yourname, msg_from_edt);
 	CW2A buff(message, CP_UTF8);
+	//CT2W unicode(message, CP_UTF8);
+
 	m_sockclient->Send(buff, message.GetLength());
 	m_edt_msg.SetWindowTextW(_T(""));
 	m_list_msg.AddString(msgToLog);
@@ -389,7 +391,7 @@ void CChattingDlg::OnBnClickedButtonConnect()
 	int num = _ttoi(port);
 	if (num == 0) {
 		num = 8888;
-		MessageBox(_T("Không thể kết nối server trên port") + port + _T(". Tạo server trên port mặc định 8888"));
+		MessageBox(_T("Không thể kết nối server trên port") + port + _T(". Kết nối server trên port mặc định 8888"));
 		port = _T("8888");
 		m_edt_port.SetWindowTextW(port);
 	}

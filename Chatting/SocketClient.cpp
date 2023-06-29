@@ -34,7 +34,7 @@ void SocketClient::OnReceive(int nErrorCode) {
 			cChattingDlg->LoginSuccess();
 		}
 		else if (msg == _T("WRONG")) {
-			cChattingDlg->GetMsgBox(_T("Wrong username or password"));
+			cChattingDlg->GetMsgBox(_T("Sai username hoặc password"));
 		}
 		else if (GetSignal(msg) == _T("NEWCL")) {
 			CString newUser = GetNewClient(msg);
@@ -46,7 +46,7 @@ void SocketClient::OnReceive(int nErrorCode) {
 			//cChattingDlg->m_list_user.AddString(newUser);
 		}
 		else if (msg == _T("LOGIN2")) {
-			cChattingDlg->GetMsgBox(_T("Someone logged in with your account"));
+			cChattingDlg->GetMsgBox(_T("Ai đó đã đăng nhập vào tài khoản của bạn rồi."));
 		}
 		else if (GetSignal(msg) == _T("NEWMSG")) {
 			int iCheck=0; //biến iChheck kiểm tra xem đã có tin nhắn nào chưa
