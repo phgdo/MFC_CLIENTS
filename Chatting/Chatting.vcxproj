@@ -96,6 +96,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>winmm.lib</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -187,6 +188,7 @@
     <ClInclude Include="Chatting.h" />
     <ClInclude Include="ChattingDlg.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="MyCListBox.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SocketClient.h" />
@@ -195,6 +197,7 @@
   <ItemGroup>
     <ClCompile Include="Chatting.cpp" />
     <ClCompile Include="ChattingDlg.cpp" />
+    <ClCompile Include="MyCListBox.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

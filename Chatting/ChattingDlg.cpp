@@ -7,7 +7,7 @@
 #include "Chatting.h"
 #include "ChattingDlg.h"
 #include "afxdialogex.h"
-
+#include <mmsystem.h>
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -230,12 +230,16 @@ void CChattingDlg::OnBnClickedButtonSend()
 	CW2A buff(message, CP_UTF8);
 	m_sockclient->Send(buff, message.GetLength());
 	m_edt_msg.SetWindowTextW(_T(""));
-	PrintMsg(targetName);
+	m_list_msg.AddString(msgToLog);
+	//PrintMsg(targetName);
 
 	// TODO: Add your control notification handler code here
 }
 
 void CChattingDlg::LoginSuccess() {
+	CString username;
+	m_edt_username.GetWindowTextW(username);
+	this->SetWindowTextW(_T("Hello ")+username);
 	m_edt_username.GetWindowText(yourname);
 	m_edt_username.ShowWindow(SW_HIDE);
 	m_edt_password.ShowWindow(SW_HIDE);
@@ -291,7 +295,7 @@ void CChattingDlg::OnBnClickedButtonSignup()
 
 void CChattingDlg::OnLbnSelchangeListUser()
 {
-
+	
 	int index = m_list_user.GetCurSel();
 	if (index != LB_ERR) {
 		 m_list_user.GetText(index, targetName);
@@ -327,4 +331,21 @@ void CChattingDlg::PrintMsg(CString targetName) {
 			}
 		}
 	}
+}
+
+void CChattingDlg::BoldUsernameNewMsg(CString username) {
+	for (int i = 0; i < m_list_user.GetCount(); i++) {
+		CString item = _T("");
+		m_list_user.GetText(i, item);
+		if (item == username) {
+			//CFont* font;
+			//font->CreateFontW(16, 0, 0, 0, FW_BOLD, 0, 0, 0, 0, 0, 0, 0, 0, _T("Arial"));
+			m_list_user.DeleteString(i);
+			m_list_user.InsertString(0, username);
+		}
+	}
+}
+
+void CChattingDlg::PlaySoundIfNewMsg() {
+	PlaySound(_T("new_message.wav"), NULL, SND_FILENAME | SND_ASYNC);
 }

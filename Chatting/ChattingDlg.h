@@ -67,5 +67,6 @@ public:
 	void F5IfNewMSG();
 	afx_msg void OnClose();
 	void PrintMsg(CString targetName);
-
+	void BoldUsernameNewMsg(CString username);
+	void PlaySoundIfNewMsg();
 };

@@ -45,18 +45,19 @@ void SocketClient::OnReceive(int nErrorCode) {
 			cChattingDlg->GetMsgBox(_T("Someone logged in with your account"));
 		}
 		else if (GetSignal(msg) == _T("NEWMSG")) {
-			int iCheck=0;
-			SendMsgStruct temp = GetSendMsgStruct(msg);
+			int iCheck=0; //biến iChheck kiểm tra xem đã có tin nhắn nào chưa
+			SendMsgStruct temp = GetSendMsgStruct(msg); 
 			for (int i = 0; i < cChattingDlg->msgLogs.size(); i++) {
-				if (cChattingDlg->msgLogs.at(i).targetName == temp.yourName) {
+				if (cChattingDlg->msgLogs.at(i).targetName == temp.yourName) { //kiểm tra xem người nhận là ai
 					CString newMsg;
 					CString a, b;
 					a = temp.yourName;
 					b = temp.msg;
-					newMsg.Format(_T("%s: %s"), a, b);
-					cChattingDlg->msgLogs.at(i).msg.push_back(newMsg);
-					iCheck++;
-					cChattingDlg->OnLbnSelchangeListUser();
+					newMsg.Format(_T("%s: %s"), a, b); //username: message (Ex: phuong: hello)
+					cChattingDlg->msgLogs.at(i).msg.push_back(newMsg); //đẩy tin nhắn vào vector để hiển thị
+					iCheck++; // tăng biến icheck
+					cChattingDlg->OnLbnSelchangeListUser(); //gọi đến hàm này để in lại tin nhắn
+					cChattingDlg->BoldUsernameNewMsg(a);
 					break;
 				}
 			}
@@ -68,7 +69,9 @@ void SocketClient::OnReceive(int nErrorCode) {
 				tempMsg.msg.push_back(newMsg);
 				cChattingDlg->msgLogs.push_back(tempMsg);
 				cChattingDlg->OnLbnSelchangeListUser();
+				cChattingDlg->BoldUsernameNewMsg(temp.yourName);
 			}
+			cChattingDlg->PlaySoundIfNewMsg();
 		}
 		else if (msg == _T("ACPSIGNUP")) {
 			cChattingDlg->MessageBox(_T("Đăng ký thành công. Vui lòng đăng nhập để bắt đầu sử dụng"));
@@ -78,11 +81,12 @@ void SocketClient::OnReceive(int nErrorCode) {
 		else if (msg == _T("NOACPSIGNUP")) {
 			cChattingDlg->MessageBox(_T("Username đã được sử dụng. Vui lòng sử dụng Username khác."));
 		}
-		else if (msg = _T("CLOFF")) {
+		else if (GetSignal(msg) == _T("CLOFF")) {
 			CString clOff = GetUsernameLogout(msg);
 			int index = cChattingDlg->m_list_user.FindString(-1, clOff);
 			if (index != LB_ERR) {
 				cChattingDlg->m_list_user.DeleteString(index); // xóa phần tử
+				cChattingDlg->m_list_msg.ResetContent();
 			}
 		}
 		
