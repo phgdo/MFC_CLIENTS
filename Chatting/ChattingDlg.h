@@ -69,4 +69,13 @@ public:
 	void PrintMsg(CString targetName);
 	void BoldUsernameNewMsg(CString username);
 	void PlaySoundIfNewMsg();
+	CEdit m_edt_port;
+	CStatic m_static_port;
+	CButton m_btn_connect;
+	afx_msg void OnBnClickedButtonConnect();
+	void SetTextDialogWhenNewMsg(CString sender);
+	CString GetFirstWordFromDialog();
+	CButton m_btn_logout;
+	afx_msg void OnBnClickedButtonLogout();
+	void Logout();
 };

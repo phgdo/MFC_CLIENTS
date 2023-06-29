@@ -11,10 +11,14 @@ SocketClient::~SocketClient() {
 
 void SocketClient::OnConnect(int nErrorCode) {
 	if (nErrorCode == 0) {
-		cChattingDlg->GetMsgBox(_T("Kết nối thành công"));
+		cChattingDlg->GetMsgBox(_T("Kết nối thành công."));
+		cChattingDlg->m_btn_signin.EnableWindow(TRUE); //Bật nút đăng nhập
+		cChattingDlg->m_btn_signup.EnableWindow(TRUE); //bật nút đăng ký
+		cChattingDlg->m_btn_connect.EnableWindow(FALSE); //Tắt nút kết nối
+		cChattingDlg->m_edt_port.EnableWindow(FALSE);
 	}
 	else {
-		cChattingDlg->GetMsgBox(_T("Kết nối ko thành công"));
+		cChattingDlg->GetMsgBox(_T("Kết nối không thành công. Hãy thử lại."));
 	}
 	CAsyncSocket::OnConnect(nErrorCode);
 }
@@ -53,11 +57,20 @@ void SocketClient::OnReceive(int nErrorCode) {
 					CString a, b;
 					a = temp.yourName;
 					b = temp.msg;
-					newMsg.Format(_T("%s: %s"), a, b); //username: message (Ex: phuong: hello)
+					newMsg.Format(_T("%s:%s"), a, b); //username: message (Ex: phuong: hello)
 					cChattingDlg->msgLogs.at(i).msg.push_back(newMsg); //đẩy tin nhắn vào vector để hiển thị
 					iCheck++; // tăng biến icheck
-					cChattingDlg->OnLbnSelchangeListUser(); //gọi đến hàm này để in lại tin nhắn
-					cChattingDlg->BoldUsernameNewMsg(a);
+					int indexOfUsername = cChattingDlg->m_list_user.FindString(-1, a);
+					if (indexOfUsername != LB_ERR) {
+						int indexItem = cChattingDlg->m_list_user.GetCurSel();
+						if (indexItem == indexOfUsername) {
+							cChattingDlg->OnLbnSelchangeListUser(); //gọi đến hàm này để in lại tin nhắn
+						}
+					}
+					//cChattingDlg->PrintMsg(a);
+					//cChattingDlg->OnLbnSelchangeListUser(); //gọi đến hàm này để in lại tin nhắn
+					cChattingDlg->BoldUsernameNewMsg(a); //Hàm này để đưa username mới gửi tin nhắn đến lên đầu danh sách
+					cChattingDlg->SetTextDialogWhenNewMsg(a); //Hàm này để set textt : tk1 đã gửi tin nhắn cho bạn
 					break;
 				}
 			}
@@ -70,6 +83,7 @@ void SocketClient::OnReceive(int nErrorCode) {
 				cChattingDlg->msgLogs.push_back(tempMsg);
 				cChattingDlg->OnLbnSelchangeListUser();
 				cChattingDlg->BoldUsernameNewMsg(temp.yourName);
+				cChattingDlg->SetTextDialogWhenNewMsg(temp.yourName);
 			}
 			cChattingDlg->PlaySoundIfNewMsg();
 		}

@@ -70,6 +70,10 @@ void CChattingDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_US, m_txt_us);
 	DDX_Control(pDX, IDC_STATIC_PS, m_txt_ps);
 	DDX_Control(pDX, IDC_STATIC_LOGIN, m_txt_login);
+	DDX_Control(pDX, IDC_EDIT_PORT, m_edt_port);
+	DDX_Control(pDX, IDC_STATIC_PORT, m_static_port);
+	DDX_Control(pDX, IDC_BUTTON_Connect, m_btn_connect);
+	DDX_Control(pDX, IDC_BUTTON_LOGOUT, m_btn_logout);
 }
 
 BEGIN_MESSAGE_MAP(CChattingDlg, CDialogEx)
@@ -81,6 +85,8 @@ BEGIN_MESSAGE_MAP(CChattingDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_SIGNUP, &CChattingDlg::OnBnClickedButtonSignup)
 	ON_LBN_SELCHANGE(IDC_LIST_USER, &CChattingDlg::OnLbnSelchangeListUser)
 	ON_WM_CLOSE()
+	ON_BN_CLICKED(IDC_BUTTON_Connect, &CChattingDlg::OnBnClickedButtonConnect)
+	ON_BN_CLICKED(IDC_BUTTON_LOGOUT, &CChattingDlg::OnBnClickedButtonLogout)
 END_MESSAGE_MAP()
 
 
@@ -116,11 +122,12 @@ BOOL CChattingDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+	m_btn_signin.EnableWindow(FALSE);
+	m_btn_signup.EnableWindow(FALSE);
 	AfxSocketInit(NULL);
 	this->m_sockclient = new SocketClient(this);
 	m_sockclient->Create();
 	
-	m_sockclient->Connect(_T("127.0.0.1"), 8888);
 	yourname = "";
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -183,6 +190,7 @@ void CChattingDlg::OnBnClickedButtonSignin()
 {
 	CString username, password;
 	//Lấy username, password từ edit text
+
 	m_edt_username.GetWindowText(username);
 	if (username.IsEmpty()) {
 		MessageBox(_T("Bạn chưa nhập username"));
@@ -212,19 +220,28 @@ void CChattingDlg::OnBnClickedButtonSend()
 	char msg[1024];
 	CString msg_from_edt;
 	m_edt_msg.GetWindowText(msg_from_edt);
+	if (msg_from_edt == _T("")) {
+		return;
+	}
+	if (m_list_user.GetCurSel() < 0) {
+		return;
+	}
 	CString msgToLog;
 	msgToLog.Format(_T("Tôi: %s"), msg_from_edt);
+	int checkIfTargetName = 0;
 	for (int i = 0; i < msgLogs.size(); i++) {
 		if (msgLogs.at(i).targetName == targetName) {
+			checkIfTargetName++;
 			msgLogs.at(i).msg.push_back(msgToLog);
 		}
 	}
-	if (msgLogs.size() == 0) {
+	if (checkIfTargetName == 0) {
 		MessageStruct newMsgStruct;
 		newMsgStruct.msg.push_back(msgToLog);
 		newMsgStruct.targetName = targetName;
 		msgLogs.push_back(newMsgStruct);
 	}
+	
 	CString message;
 	message.Format(_T("SENDMSG %s %s %s"), targetName, yourname, msg_from_edt);
 	CW2A buff(message, CP_UTF8);
@@ -240,6 +257,7 @@ void CChattingDlg::LoginSuccess() {
 	CString username;
 	m_edt_username.GetWindowTextW(username);
 	this->SetWindowTextW(_T("Hello ")+username);
+	//Nhưng control cần ẩn đi
 	m_edt_username.GetWindowText(yourname);
 	m_edt_username.ShowWindow(SW_HIDE);
 	m_edt_password.ShowWindow(SW_HIDE);
@@ -248,11 +266,20 @@ void CChattingDlg::LoginSuccess() {
 	m_txt_login.ShowWindow(SW_HIDE);
 	m_txt_us.ShowWindow(SW_HIDE);
 	m_txt_ps.ShowWindow(SW_HIDE);
+	m_edt_port.ShowWindow(SW_HIDE);
+	m_static_port.ShowWindow(SW_HIDE);
+	m_btn_connect.ShowWindow(SW_HIDE);
 
+	//Những control cần show ra
 	m_list_msg.ShowWindow(SW_SHOW);
 	m_list_user.ShowWindow(SW_SHOW);
 	m_btn_send.ShowWindow(SW_SHOW);
 	m_edt_msg.ShowWindow(SW_SHOW);
+	m_btn_logout.ShowWindow(SW_SHOW);
+	//m_static_username.ShowWindow(SW_SHOW);
+	//CString printUsername;
+	//printUsername.Format(_T("Username: %s"), username);
+	//m_static_username.SetWindowTextW(_T("Username: ") + username);
 }
 
 
@@ -299,6 +326,11 @@ void CChattingDlg::OnLbnSelchangeListUser()
 	int index = m_list_user.GetCurSel();
 	if (index != LB_ERR) {
 		 m_list_user.GetText(index, targetName);
+	}
+	if (GetFirstWordFromDialog() == targetName) {
+		CString username;
+		m_edt_username.GetWindowTextW(username);
+		this->SetWindowTextW(_T("Hello ") + username);
 	}
 	PrintMsg(targetName);
 	// TODO: Add your control notification handler code here
@@ -348,4 +380,89 @@ void CChattingDlg::BoldUsernameNewMsg(CString username) {
 
 void CChattingDlg::PlaySoundIfNewMsg() {
 	PlaySound(_T("new_message.wav"), NULL, SND_FILENAME | SND_ASYNC);
+}
+
+void CChattingDlg::OnBnClickedButtonConnect()
+{
+	CString port =_T("");
+	m_edt_port.GetWindowText(port);
+	int num = _ttoi(port);
+	if (num == 0) {
+		num = 8888;
+		MessageBox(_T("Không thể kết nối server trên port") + port + _T(". Tạo server trên port mặc định 8888"));
+		port = _T("8888");
+		m_edt_port.SetWindowTextW(port);
+	}
+	m_sockclient->Connect(_T("127.0.0.1"), num);
+
+
+	// TODO: Add your control notification handler code here
+}
+
+void CChattingDlg::SetTextDialogWhenNewMsg(CString sender) {
+	this->SetWindowTextW(sender + _T(" đã gửi tin nhắn cho bạn."));
+}
+
+CString CChattingDlg::GetFirstWordFromDialog() {
+	CString msg;
+	this->GetWindowTextW(msg);
+	CString signal;
+	int wordCount = 0;
+	for (int j = 0; j < msg.GetLength(); j++) {
+		if (msg[j] == ' ') {
+			wordCount++;
+		}
+		else {
+			signal += msg[j];
+		}
+		if (wordCount == 1) {
+			break;
+		}
+	}
+	return signal;
+}
+
+void CChattingDlg::OnBnClickedButtonLogout()
+{
+	CString message;
+	message.Format(_T("LOGOUT %s"), yourname);
+	CW2A buff(message, CP_UTF8);
+	m_sockclient->Send(buff, message.GetLength());
+	m_sockclient->Close();
+	Logout();
+	// TODO: Add your control notification handler code here
+}
+
+void CChattingDlg::Logout() {
+	yourname = _T("");
+	m_list_user.ResetContent();
+	m_list_msg.ResetContent();
+	msgLogs.clear();
+	this->SetWindowTextW(_T("ChatClient"));
+	m_edt_username.SetWindowTextW(_T(""));
+	m_edt_password.SetWindowTextW(_T(""));
+	//Các control cần hiển thị
+	m_edt_username.ShowWindow(SW_SHOW);
+	m_edt_password.ShowWindow(SW_SHOW);
+	m_btn_signin.ShowWindow(SW_SHOW);
+	m_btn_signup.ShowWindow(SW_SHOW);
+	m_txt_login.ShowWindow(SW_SHOW);
+	m_txt_us.ShowWindow(SW_SHOW);
+	m_txt_ps.ShowWindow(SW_SHOW);
+	m_edt_port.ShowWindow(SW_SHOW);
+	m_static_port.ShowWindow(SW_SHOW);
+	m_btn_connect.ShowWindow(SW_SHOW);
+
+	//Những control cần ẩn đi
+	m_list_msg.ShowWindow(SW_HIDE);
+	m_list_user.ShowWindow(SW_HIDE);
+	m_btn_send.ShowWindow(SW_HIDE);
+	m_edt_msg.ShowWindow(SW_HIDE);
+	m_btn_logout.ShowWindow(SW_HIDE);
+
+	m_btn_signin.EnableWindow(FALSE);
+	m_btn_signup.EnableWindow(FALSE);
+	m_btn_connect.EnableWindow(TRUE); //Mở nút kết nối
+	m_edt_port.EnableWindow(TRUE);
+	m_sockclient->Create();
 }
